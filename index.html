@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en" class="light-mode">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Simulation Module - Abu Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+            --bg-color: #111827;
+            --card-bg: #1f2937;
+            --border-color: #374151;
+            --text-color: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: var(--card-bg);
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            position: relative;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background-color: rgba(31, 41, 55, 0.5);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .validation-indicator {
+            display: flex;
+            align-items: center;
+            margin-top: 0.25rem;
+            font-size: 0.875rem;
+        }
+        
+        .validation-indicator i {
+            margin-right: 0.5rem;
+        }
+        
+        .validation-indicator.valid i {
+            color: #10b981;
+        }
+        
+        .validation-indicator.invalid i {
+            color: #ef4444;
+        }
+        
+        .validation-result {
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: opacity 0.5s ease, max-height 0.5s ease;
+        }
+        
+        .validation-result.show {
+            opacity: 1;
+            max-height: 500px;
+        }
+        
+        @keyframes progress {
+            0% { width: 0; }
+            100% { width: 100%; }
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background-color: #4f46e5;
+            animation: progress 2s linear;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+    <div class="container mx-auto">
+        <header class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-2xl font-bold">Payment Simulation Module</h1>
+                <a href="javascript:history.back()" class="text-indigo-400 hover:text-indigo-300">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                </a>
+            </div>
+            <p class="text-gray-400">Advanced payment page simulation with multiple services and detailed analysis</p>
+        </header>
+        
+        <div class="card mb-8">
+            <div class="card-header bg-gradient-to-r from-purple-600 to-purple-700">
+                <h2 class="text-xl flex items-center"><i class="fas fa-robot mr-2"></i> Automated Card Simulation Bot</h2>
+                <span id="simulation-bot-status" class="status-badge status-active">READY</span>
+            </div>
+            <div class="p-4 md:p-6">
+                <p class="text-gray-400 mb-4">This bot automatically generates cards, validates them, and simulates transactions to help you test and learn.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <div class="bg-[#111111] p-3 rounded-lg border border-[#2a2a2a]">
+                        <div class="text-xs text-gray-400 mb-1">Step 1</div>
+                        <div class="font-medium">Generate Card</div>
+                        <div class="mt-2 text-sm text-gray-400">
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>Card Number (Luhn valid)</li>
+                                <li>CVV (3-4 digits)</li>
+                                <li>Future expiry date</li>
+                                <li>ZIP code (optional)</li>
+                            </ul>
+                        </div>
+                        <div class="mt-2">
+                            <span class="status-badge status-active text-xs">Ready</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-[#111111] p-3 rounded-lg border border-[#2a2a2a]">
+                        <div class="text-xs text-gray-400 mb-1">Step 2</div>
+                        <div class="font-medium">Validation Phase</div>
+                        <div class="mt-2 text-sm text-gray-400">
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>Luhn Algorithm</li>
+                                <li>BIN pattern vs region</li>
+                                <li>ZIP+Card Country match</li>
+                                <li>Expiry Date check</li>
+                            </ul>
+                        </div>
+                        <div class="mt-2">
+                            <span class="status-badge status-active text-xs">Ready</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-[#111111] p-3 rounded-lg border border-[#2a2a2a]">
+                        <div class="text-xs text-gray-400 mb-1">Step 3</div>
+                        <div class="font-medium">Simulated Charging</div>
+                        <div class="mt-2 text-sm text-gray-400">
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>Multiple payment pages</li>
+                                <li>Auto form-fill & submit</li>
+                                <li>Risk scoring</li>
+                                <li>Success/decline</li>
+                            </ul>
+                        </div>
+                        <div class="mt-2">
+                            <span class="status-badge status-active text-xs">Ready</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-[#111111] p-3 rounded-lg border border-[#2a2a2a]">
+                        <div class="text-xs text-gray-400 mb-1">Step 4</div>
+                        <div class="font-medium">Outcome Logging</div>
+                        <div class="mt-2 text-sm text-gray-400">
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>Generate/reuse status</li>
+                                <li>Validation pass/fail</li>
+                                <li>Charge result</li>
+                                <li>Reason (if failed)</li>
+                            </ul>
+                        </div>
+                        <div class="mt-2">
+                            <span class="status-badge status-active text-xs">Ready</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-[#111111] rounded-lg p-4 mb-4">
+                    <h3 class="font-medium mb-2">Simulation Configuration</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm mb-1">Number of Simulations</label>
+                            <input type="number" id="simulation-count" value="5" min="1" max="50" class="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded p-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">Simulation Speed</label>
+                            <select id="simulation-speed" class="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded p-2">
+                                <option value="slow">Slow (with UI)</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="fast">Fast (headless)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm mb-1">Payment Page to Simulate</label>
+                        <select id="payment-page" class="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded p-2">
+                            <option value="netflix">Netflix Subscription</option>
+                            <option value="remitly">Remitly Transfer</option>
+                            <option value="taptap">TapTap Game Coins</option>
+                            <option value="ludostar">Ludo Star Diamonds</option>
+                            <option value="ludostarcoin">Ludo Star Coins</option>
+                            <option value="yalladiamond">Yalla Ludo Diamonds</option>
+                            <option value="yallacoin">Yalla Ludo Coins</option>
+                            <option value="tiktok">TikTok Coins</option>
+                            <option value="amazoncard">Amazon Gift Card</option>
+                            <option value="itunescard">iTunes Gift Card</option>
+                            <option value="googlecard">Google Play Gift Card</option>
+                            <option value="steamcard">Steam Gift Card</option>
+                            <option value="psn">PlayStation Network Credit</option>
+                            <option value="xbox">Xbox Game Pass</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" id="use-ai-learning" checked class="form-checkbox bg-[#1a1a1a] border-[#2a2a2a] text-indigo-600 rounded">
+                            <span class="ml-2 text-sm">Enable AI learning</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" id="save-results" checked class="form-checkbox bg-[#1a1a1a] border-[#2a2a2a] text-indigo-600 rounded">
+                            <span class="ml-2 text-sm">Save results</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" id="show-detailed-logs" class="form-checkbox bg-[#1a1a1a] border-[#2a2a2a] text-indigo-600 rounded">
+                            <span class="ml-2 text-sm">Show detailed logs</span>
+                        </label>
+                    </div>
+                    <button id="start-simulation" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg w-full transition-colors">
+                        <i class="fas fa-play mr-2"></i> Start Automated Simulation
+                    </button>
+                </div>
+                
+                <div id="simulation-results" class="bg-[#111111] rounded-lg p-4 hidden">
+                    <h3 class="font-medium mb-2">Simulation Results</h3>
+                    <div id="simulation-progress" class="w-full h-2 bg-[#2a2a2a] rounded-full mb-4">
+                        <div class="progress-bar h-full rounded-full" style="width: 0%"></div>
+                    </div>
+                    <div id="simulation-log" class="text-sm h-48 overflow-y-auto bg-[#0a0a0a] p-3 rounded font-mono">
+                        <!-- Simulation logs will appear here -->
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 text-center">
+                        <div class="bg-[#1a1a1a] p-2 rounded">
+                            <div class="text-xs text-gray-400">Total Cards</div>
+                            <div id="total-cards" class="text-xl font-bold">0</div>
+                        </div>
+                        <div class="bg-[#1a1a1a] p-2 rounded">
+                            <div class="text-xs text-gray-400">Success Rate</div>
+                            <div id="success-rate" class="text-xl font-bold text-green-500">0%</div>
+                        </div>
+                        <div class="bg-[#1a1a1a] p-2 rounded">
+                            <div class="text-xs text-gray-400">Avg. Realism</div>
+                            <div id="avg-realism" class="text-xl font-bold text-blue-500">0%</div>
+                        </div>
+                        <div class="bg-[#1a1a1a] p-2 rounded">
+                            <div class="text-xs text-gray-400">Failures</div>
+                            <div id="failure-count" class="text-xl font-bold text-red-500">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCardSimulationBot();
+
+            // Flash message function
+            function showFlashMessage(message, type = 'info') {
+                // Create flash message container if it doesn't exist
+                let flashContainer = document.getElementById('flash-message');
+                if (!flashContainer) {
+                    flashContainer = document.createElement('div');
+                    flashContainer.id = 'flash-message';
+                    flashContainer.className = 'fixed bottom-5 right-5 max-w-md bg-[#1a1a1a] border border-[#2a2a2a] shadow-lg rounded-lg p-4 z-50';
+                    document.body.appendChild(flashContainer);
+                }
+                
+                // Set icon and color based on type
+                let icon, color, title;
+                switch (type) {
+                    case 'success':
+                        icon = 'fa-check-circle';
+                        color = 'text-green-500';
+                        title = 'Success';
+                        break;
+                    case 'error':
+                        icon = 'fa-exclamation-circle';
+                        color = 'text-red-500';
+                        title = 'Error';
+                        break;
+                    case 'warning':
+                        icon = 'fa-exclamation-triangle';
+                        color = 'text-yellow-500';
+                        title = 'Warning';
+                        break;
+                    case 'info':
+                    default:
+                        icon = 'fa-info-circle';
+                        color = 'text-blue-500';
+                        title = 'Information';
+                }
+                
+                // Create flash message content
+                flashContainer.innerHTML = `
+                <div class="flex items-start">
+                    <div class="mt-0.5 mr-3">
+                        <i class="fas ${icon} ${color} text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-medium">${title}</h3>
+                        <p class="text-sm text-gray-400">${message}</p>
+                    </div>
+                    <button id="flash-close" class="ml-4 text-gray-400 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>`;
+                
+                // Show the flash message
+                setTimeout(() => {
+                    flashContainer.style.opacity = '1';
+                    flashContainer.style.transform = 'translateY(0)';
+                }, 100);
+                
+                // Add close button event
+                document.getElementById('flash-close').addEventListener('click', function() {
+                    flashContainer.style.opacity = '0';
+                    flashContainer.style.transform = 'translateY(20px)';
+                });
+                
+                // Hide after 5 seconds
+                setTimeout(() => {
+                    flashContainer.style.opacity = '0';
+                    flashContainer.style.transform = 'translateY(20px)';
+                }, 5000);
+            }
+            
+            function initializeCardSimulationBot() {
+                const startSimulationButton = document.getElementById('start-simulation');
+                const simulationResults = document.getElementById('simulation-results');
+                const simulationLog = document.getElementById('simulation-log');
+                const simulationProgressBar = document.querySelector('#simulation-progress .progress-bar');
+                
+                // Simulation stats elements
+                const totalCardsElement = document.getElementById('total-cards');
+                const successRateElement = document.getElementById('success-rate');
+                const avgRealismElement = document.getElementById('avg-realism');
+                const failureCountElement = document.getElementById('failure-count');
+                
+                // Simulation configuration elements
+                const simulationCountInput = document.getElementById('simulation-count');
+                const simulationSpeedSelect = document.getElementById('simulation-speed');
+                const paymentPageSelect = document.getElementById('payment-page');
+                const useAILearningCheckbox = document.getElementById('use-ai-learning');
+                const saveResultsCheckbox = document.getElementById('save-results');
+                const showDetailedLogsCheckbox = document.getElementById('show-detailed-logs');
+                
+                // Start simulation button click
+                startSimulationButton.addEventListener('click', function() {
+                    // Get configuration values
+                    const simulationCount = parseInt(simulationCountInput.value, 10);
+                    const simulationSpeed = simulationSpeedSelect.value;
+                    const useAILearning = useAILearningCheckbox.checked;
+                    const saveResults = saveResultsCheckbox.checked;
+                    const showDetailedLogs = showDetailedLogsCheckbox.checked;
+                    const paymentPageName = paymentPageSelect.options[paymentPageSelect.selectedIndex].text;
+                    
+                    // Validate simulation count
+                    if (isNaN(simulationCount) || simulationCount < 1 || simulationCount > 50) {
+                        showFlashMessage('Please enter a simulation count between 1 and 50', 'warning');
+                        return;
+                    }
+                    
+                    // Show results container
+                    simulationResults.classList.remove('hidden');
+                    
+                    // Reset progress and logs
+                    simulationProgressBar.style.width = '0%';
+                    simulationLog.innerHTML = '';
+                    totalCardsElement.textContent = '0';
+                    successRateElement.textContent = '0%';
+                    avgRealismElement.textContent = '0%';
+                    failureCountElement.textContent = '0';
+                    
+                    // Disable start button
+                    startSimulationButton.disabled = true;
+                    startSimulationButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Simulation Running...';
+                    
+                    // Add initial log entry
+                    addLogEntry('Starting automated card simulation with the following configuration:');
+                    addLogEntry(`- Number of simulations: ${simulationCount}`);
+                    addLogEntry(`- Payment page: ${paymentPageName}`);
+                    addLogEntry(`- Simulation speed: ${simulationSpeed}`);
+                    addLogEntry(`- AI learning: ${useAILearning ? 'Enabled' : 'Disabled'}`);
+                    addLogEntry(`- Save results: ${saveResults ? 'Enabled' : 'Disabled'}`);
+                    addLogEntry(`- Detailed logs: ${showDetailedLogs ? 'Enabled' : 'Disabled'}`);
+                    addLogEntry('---');
+                    
+                    // Show flash message
+                    showFlashMessage(`Started ${paymentPageName} payment simulation`, 'info');
+                    
+                    // Run the simulation
+                    runCardSimulation(simulationCount, simulationSpeed, useAILearning, showDetailedLogs, paymentPageSelect);
+                });
+                
+                // Run card simulation
+                function runCardSimulation(count, speed, useAILearning, showDetailedLogs, paymentPageSelect) {
+                    let completedSimulations = 0;
+                    let successfulSimulations = 0;
+                    let totalRealism = 0;
+                    
+                    // Get selected payment page
+                    const selectedPaymentPage = paymentPageSelect.value;
+                    
+                    // Determine delay between simulations based on speed
+                    const delay = speed === 'slow' ? 2000 : (speed === 'medium' ? 1000 : 500);
+                    
+                    // Run simulations one by one
+                    function runNextSimulation() {
+                        if (completedSimulations >= count) {
+                            // All simulations complete
+                            simulationComplete(paymentPageSelect);
+                            return;
+                        }
+                        
+                        completedSimulations++;
+                        
+                        // Update progress
+                        const progressPercent = (completedSimulations / count) * 100;
+                        simulationProgressBar.style.width = `${progressPercent}%`;
+                        
+                        // Generate card
+                        addLogEntry(`[${completedSimulations}/${count}] Generating card...`);
+                        const card = generateRandomCard();
+                        
+                        if (showDetailedLogs) {
+                            addLogEntry(`Card number: ${maskCardNumber(card.number)}`);
+                            addLogEntry(`Expiry: ${card.expiry}`);
+                            addLogEntry(`CVV: ${card.cvv}`);
+                            addLogEntry(`Zip: ${card.zip}`);
+                        }
+                        
+                        // Validate card
+                        setTimeout(() => {
+                            addLogEntry(`[${completedSimulations}/${count}] Validating card...`);
+                            const validationResult = validateCard(card.number, card.expiry, card.cvv);
+                            
+                            if (showDetailedLogs) {
+                                const validationMsg = validationResult.valid ? 'Card passed all validation checks' : 
+                                                    `Card failed validation: ${validationResult.issues.join(', ')}`;
+                                addLogEntry(validationMsg);
+                                addLogEntry(`Card realism score: ${validationResult.realism}%`);
+                            }
+                            
+                            // Update realism total
+                            totalRealism += validationResult.realism;
+                            
+                            // Proceed to charging simulation if valid
+                            setTimeout(() => {
+                                if (validationResult.valid) {
+                                    // Get selected payment page name for display
+                                    const paymentPageName = paymentPageSelect.options[paymentPageSelect.selectedIndex].text;
+                                    addLogEntry(`[${completedSimulations}/${count}] Simulating ${paymentPageName} payment...`);
+                                    
+                                    // Simulate charging
+                                    setTimeout(() => {
+                                        // Determine success chance based on payment type
+                                        let successChance = 0.8;  // Default 80% success
+                                        
+                                        // Adjust success chance based on payment type
+                                        if (['tiktok', 'remitly'].includes(selectedPaymentPage)) {
+                                            successChance = 0.85;  // Higher success rate for popular services
+                                        } else if (['amazoncard', 'itunescard', 'googlecard'].includes(selectedPaymentPage)) {
+                                            successChance = 0.75;  // Slightly lower for gift cards
+                                        } else if (['ludostar', 'ludostarcoin', 'yalladiamond', 'yallacoin'].includes(selectedPaymentPage)) {
+                                            successChance = 0.82;  // Game currency
+                                        }
+                                        
+                                        // Determine if charge is successful
+                                        const chargeSuccess = Math.random() < successChance;
+                                        
+                                        if (chargeSuccess) {
+                                            addLogEntry(`[${completedSimulations}/${count}] ${paymentPageName} payment successful!`, 'success');
+                                            successfulSimulations++;
+                                        } else {
+                                            // Customize declined reasons based on payment type
+                                            let reasons = ['Insufficient funds', 'Transaction denied by issuer', 'Risk rules triggered', 'AVS mismatch'];
+                                            
+                                            // Add specific decline reasons for different payment types
+                                            if (selectedPaymentPage === 'remitly') {
+                                                reasons.push('Recipient verification failed', 'Transfer limit exceeded');
+                                            } else if (selectedPaymentPage.includes('card')) {
+                                                reasons.push('Card redemption limit reached', 'Region restriction');
+                                            } else if (selectedPaymentPage.includes('ludo') || selectedPaymentPage.includes('taptap')) {
+                                                reasons.push('Game account verification failed', 'Purchase limit reached');
+                                            } else if (selectedPaymentPage === 'tiktok') {
+                                                reasons.push('Account age restriction', 'Daily purchase limit');
+                                            }
+                                            
+                                            const reason = reasons[Math.floor(Math.random() * reasons.length)];
+                                            addLogEntry(`[${completedSimulations}/${count}] ${paymentPageName} payment failed: ${reason}`, 'error');
+                                        }
+                                        
+                                        // Update stats
+                                        updateSimulationStats(completedSimulations, successfulSimulations, totalRealism);
+                                        
+                                        // Run next simulation
+                                        setTimeout(runNextSimulation, delay);
+                                    }, delay);
+                                } else {
+                                    addLogEntry(`[${completedSimulations}/${count}] Skipping payment attempt due to validation failure`, 'warning');
+                                    
+                                    // Update stats
+                                    updateSimulationStats(completedSimulations, successfulSimulations, totalRealism);
+                                    
+                                    // Run next simulation
+                                    setTimeout(runNextSimulation, delay);
+                                }
+                            }, delay / 2);
+                        }, delay / 2);
+                    }
+                    
+                    // Start the first simulation
+                    runNextSimulation();
+                }
+                
+                // Simulation complete
+                function simulationComplete(paymentPageSelect) {
+                    // Get selected payment page name
+                    const paymentPageName = paymentPageSelect.options[paymentPageSelect.selectedIndex].text;
+                    
+                    // Enable start button
+                    startSimulationButton.disabled = false;
+                    startSimulationButton.innerHTML = '<i class="fas fa-play mr-2"></i> Start Automated Simulation';
+                    
+                    // Add completion log entry
+                    addLogEntry('---');
+                    addLogEntry(`${paymentPageName} simulation complete!`, 'success');
+                    
+                    // Show flash message
+                    showFlashMessage(`${paymentPageName} payment simulation completed`, 'success');
+                }
+                
+                // Update simulation stats
+                function updateSimulationStats(total, successful, totalRealism) {
+                    totalCardsElement.textContent = total;
+                    
+                    const successRate = total > 0 ? Math.round((successful / total) * 100) : 0;
+                    successRateElement.textContent = `${successRate}%`;
+                    
+                    const avgRealism = total > 0 ? Math.round(totalRealism / total) : 0;
+                    avgRealismElement.textContent = `${avgRealism}%`;
+                    
+                    failureCountElement.textContent = total - successful;
+                }
+                
+                // Add log entry
+                function addLogEntry(message, type = 'info') {
+                    const logEntry = document.createElement('div');
+                    logEntry.className = 'mb-1';
+                    
+                    // Format timestamp
+                    const now = new Date();
+                    const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    
+                    // Set color based on type
+                    let color;
+                    switch (type) {
+                        case 'success':
+                            color = 'text-green-500';
+                            break;
+                        case 'error':
+                            color = 'text-red-500';
+                            break;
+                        case 'warning':
+                            color = 'text-yellow-500';
+                            break;
+                        case 'info':
+                        default:
+                            color = 'text-gray-400';
+                    }
+                    
+                    logEntry.innerHTML = `<span class="text-gray-500">${timestamp}</span> <span class="${color}">${message}</span>`;
+                    simulationLog.appendChild(logEntry);
+                    simulationLog.scrollTop = simulationLog.scrollHeight;
+                }
+                
+                // Generate random card
+                function generateRandomCard() {
+                    // Generate card number (with Luhn validation)
+                    const cardNumber = generateValidCardNumber();
+                    
+                    // Generate expiry date (future date)
+                    const expiry = generateFutureExpiry();
+                    
+                    // Generate CVV
+                    const cvv = generateRandomCVV(cardNumber);
+                    
+                    // Generate ZIP code
+                    const zip = generateRandomZip();
+                    
+                    return {
+                        number: cardNumber,
+                        expiry: expiry,
+                        cvv: cvv,
+                        zip: zip
+                    };
+                }
+                
+                // Generate valid card number (passes Luhn)
+                function generateValidCardNumber() {
+                    // Common BIN prefixes
+                    const binPrefixes = [
+                        '4', // Visa
+                        '51', '52', '53', '54', '55', // Mastercard
+                        '34', '37', // Amex
+                        '6011' // Discover
+                    ];
+                    
+                    // Select a random BIN prefix
+                    const prefix = binPrefixes[Math.floor(Math.random() * binPrefixes.length)];
+                    
+                    // Determine length based on card type
+                    let length;
+                    if (prefix === '34' || prefix === '37') {
+                        length = 15; // Amex
+                    } else {
+                        length = 16; // Others
+                    }
+                    
+                    // Generate the rest of the number randomly
+                    let number = prefix;
+                    for (let i = prefix.length; i < length - 1; i++) {
+                        number += Math.floor(Math.random() * 10);
+                    }
+                    
+                    // Calculate Luhn check digit
+                    let sum = 0;
+                    let double = false;
+                    
+                    // Loop from right to left
+                    for (let i = number.length - 1; i >= 0; i--) {
+                        let digit = parseInt(number.charAt(i), 10);
+                        
+                        if (double) {
+                            digit *= 2;
+                            if (digit > 9) digit -= 9;
+                        }
+                        
+                        sum += digit;
+                        double = !double;
+                    }
+                    
+                    // Calculate check digit
+                    const checkDigit = (10 - (sum % 10)) % 10;
+                    
+                    // Return complete card number
+                    return number + checkDigit;
+                }
+                
+                // Generate future expiry date
+                function generateFutureExpiry() {
+                    const currentDate = new Date();
+                    const currentYear = currentDate.getFullYear();
+                    const currentMonth = currentDate.getMonth() + 1;
+                    
+                    // Generate a random future year (0-5 years ahead)
+                    const futureYear = currentYear + Math.floor(Math.random() * 6);
+                    
+                    // Generate a random month (1-12)
+                    let futureMonth;
+                    if (futureYear === currentYear) {
+                        // If same year, must be future month
+                        futureMonth = currentMonth + Math.floor(Math.random() * (13 - currentMonth));
+                    } else {
+                        futureMonth = Math.floor(Math.random() * 12) + 1;
+                    }
+                    
+                    // Format month and year
+                    const month = futureMonth.toString().padStart(2, '0');
+                    const year = (futureYear % 100).toString().padStart(2, '0');
+                    
+                    return `${month}/${year}`;
+                }
+                
+                // Generate random CVV based on card type
+                function generateRandomCVV(cardNumber) {
+                    // Determine card type
+                    const isAmex = cardNumber.startsWith('34') || cardNumber.startsWith('37');
+                    
+                    // Generate CVV of appropriate length
+                    const length = isAmex ? 4 : 3;
+                    let cvv = '';
+                    
+                    for (let i = 0; i < length; i++) {
+                        cvv += Math.floor(Math.random() * 10);
+                    }
+                    
+                    return cvv;
+                }
+                
+                // Generate random ZIP code
+                function generateRandomZip() {
+                    let zip = '';
+                    
+                    for (let i = 0; i < 5; i++) {
+                        zip += Math.floor(Math.random() * 10);
+                    }
+                    
+                    return zip;
+                }
+                
+                // Mask card number for display
+                function maskCardNumber(cardNumber) {
+                    if (cardNumber.length < 8) return '****';
+                    return cardNumber.substring(0, 4) + ' **** **** ' + 
+                        cardNumber.substring(cardNumber.length - 4);
+                }
+                
+                // Validate card
+                function validateCard(cardNumber, expiry, cvv) {
+                    // Basic validation checks
+                    const luhnValid = luhnCheck(cardNumber);
+                    const cardType = getCardType(cardNumber);
+                    const bin = cardNumber.substring(0, 6);
+                    const binInfo = checkBin(bin);
+                    
+                    // Expiry validation
+                    const [month, year] = expiry.split('/');
+                    const expiryDate = new Date(2000 + parseInt(year, 10), parseInt(month, 10) - 1);
+                    const currentDate = new Date();
+                    const expiryValid = expiryDate > currentDate;
+                    
+                    // CVV validation
+                    const cvvLength = cardType === 'American Express' ? 4 : 3;
+                    const cvvValid = cvv.length === cvvLength;
+                    
+                    // Create issues list
+                    const issues = [];
+                    if (!luhnValid) issues.push('Failed Luhn check algorithm');
+                    if (!binInfo.valid) issues.push('Unrecognized or invalid BIN');
+                    if (!expiryValid) issues.push('Card is expired or has invalid date');
+                    if (!cvvValid) issues.push('CVV length incorrect for card type');
+                    
+                    // Calculate realism
+                    let realism = 0;
+                    if (luhnValid) realism += 25;
+                    if (binInfo.valid) realism += 35;
+                    if (expiryValid) realism += 20;
+                    if (cvvValid) realism += 20;
+                    
+                    // Create result data
+                    return {
+                        valid: issues.length === 0,
+                        cardType: cardType,
+                        binInfo: binInfo,
+                        issues: issues,
+                        details: {
+                            luhnValid: luhnValid,
+                            binValid: binInfo.valid,
+                            expiryValid: expiryValid,
+                            cvvValid: cvvValid
+                        },
+                        realism: realism
+                    };
+                }
+                
+                // Luhn algorithm check
+                function luhnCheck(cardNumber) {
+                    if (!cardNumber) return false;
+                    
+                    let sum = 0;
+                    let double = false;
+                    
+                    // Loop from right to left
+                    for (let i = cardNumber.length - 1; i >= 0; i--) {
+                        let digit = parseInt(cardNumber.charAt(i), 10);
+                        
+                        if (double) {
+                            digit *= 2;
+                            if (digit > 9) digit -= 9;
+                        }
+                        
+                        sum += digit;
+                        double = !double;
+                    }
+                    
+                    return sum % 10 === 0;
+                }
+                
+                // Get card type based on first digits
+                function getCardType(cardNumber) {
+                    const firstDigit = cardNumber.charAt(0);
+                    const firstTwoDigits = cardNumber.substring(0, 2);
+                    
+                    if (firstDigit === '4') {
+                        return 'Visa';
+                    } else if (['51', '52', '53', '54', '55'].includes(firstTwoDigits)) {
+                        return 'Mastercard';
+                    } else if (['34', '37'].includes(firstTwoDigits)) {
+                        return 'American Express';
+                    } else if (firstTwoDigits === '60' || firstTwoDigits === '65') {
+                        return 'Discover';
+                    } else {
+                        return 'Unknown';
+                    }
+                }
+                
+                // Simulate BIN check
+                function checkBin(bin) {
+                    // Simplified BIN database simulation
+                    const binPatterns = {
+                        '411111': { issuer: 'Chase Bank', country: 'United States', valid: true },
+                        '377002': { issuer: 'American Express', country: 'United States', valid: true },
+                        '601111': { issuer: 'Discover', country: 'United States', valid: true },
+                        '520123': { issuer: 'Mastercard', country: 'United Kingdom', valid: true },
+                    };
+                    
+                    // Check if BIN exists in our patterns
+                    if (binPatterns[bin]) {
+                        return binPatterns[bin];
+                    }
+                    
+                    // For demo purposes, return random valid data
+                    const rand = Math.random();
+                    
+                    if (bin.startsWith('4')) {
+                        return {
+                            issuer: 'Visa',
+                            country: rand > 0.6 ? 'United States' : rand > 0.3 ? 'Canada' : 'United Kingdom',
+                            valid: rand > 0.2 // 80% chance of being valid
+                        };
+                    } else if (bin.startsWith('5')) {
+                        return {
+                            issuer: 'Mastercard',
+                            country: rand > 0.6 ? 'United States' : rand > 0.3 ? 'Germany' : 'France',
+                            valid: rand > 0.2 // 80% chance of being valid
+                        };
+                    } else if (bin.startsWith('3')) {
+                        return {
+                            issuer: 'American Express',
+                            country: 'United States',
+                            valid: rand > 0.3 // 70% chance of being valid
+                        };
+                    } else if (bin.startsWith('6')) {
+                        return {
+                            issuer: 'Discover',
+                            country: 'United States',
+                            valid: rand > 0.4 // 60% chance of being valid
+                        };
+                    }
+                    
+                    // Unknown BIN
+                    return {
+                        issuer: 'Unknown',
+                        country: 'Unknown',
+                        valid: false
+                    };
+                }
+            }
+        });
+    </script>
+</body>
+</html>
